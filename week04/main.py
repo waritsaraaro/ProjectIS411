@@ -1,28 +1,9 @@
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-from sqlmodel import Field, Session, SQLModel, create_engine, select
+from sqlmodel import Session, select
+from database import engine, init_db
+from models import Trip, TripDB, TripOut
 
-class TripDB(SQLModel, table=True):
-    id: int | None = Field(default=None,primary_key=True)
-    name: str
-    destination: str 
-    duration: int 
-    price: float
-    group_size: int 
-
-engine = create_engine("sqlite:///database.db")
-SQLModel.metadata.create_all(engine)
-
-class Trip(BaseModel):
-    name: str
-    destination: str
-    duration: int
-    price: float
-    group_size: int
-
-class TripOut(Trip):
-    id: int
-
+init_db()
 app = FastAPI() 
 
 @app.get("/trips/{trip_id}")

@@ -13,7 +13,10 @@
   <div class="container">
     <div class="navbar-brand">
       <a class="navbar-item" href="/">
+      <div style="display:flex; flex-direction:column; align-items:center;">
         <strong class="is-size-4">FIIT</strong>
+        <p class="is-size-7">Your Clothes</p>
+      </div>
       </a>
 
       <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbarMenu">

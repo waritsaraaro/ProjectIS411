@@ -15,7 +15,7 @@ To recreate this project with the same configuration:
 
 ```sh
 # recreate this project
-npx sv@0.12.7 create --template minimal --types jsdoc --install npm web_app
+npx sv@0.12.8 create --template minimal --types jsdoc --install npm web_app
 ```
 
 ## Developing

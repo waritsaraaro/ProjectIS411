@@ -23,8 +23,8 @@
     </div>
 
     <div class="column">
-      <p class="has-text-weight-bold">{item.name}</p>
-      <p class="is-size-7 has-text-grey">{item.shop}</p>
+      <p class="has-text-weight-bold is-size-6">{item.name}</p>
+      <p class="is-size-7 has-text-grey">{item.detail || item.description || 'ไม่มีรายละเอียด'}</p>
       <p class="has-text-primary">฿{item.price.toLocaleString()}</p>
     </div>
 </div>

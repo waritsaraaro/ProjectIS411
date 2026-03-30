@@ -44,13 +44,14 @@
         </a>
         
         <a class="navbar-item" href="/cart" style="position: relative;">
-          <span class="icon">
-            <i class="fas fa-shopping-cart"></i>
-          </span>
+          <div style="position: relative; display: inline-block;">
+            <span class="icon">
+              <i class="fas fa-shopping-cart"></i>
+            </span>
           
           {#if cartStore.count > 0}
             <span class="tag is-danger is-rounded is-small" 
-              style="position: absolute; top: 10px; right: 2px; font-size: 0.65rem; height: 1.5em; min-width: 1.5em; padding: 0.2em; border: 2px solid #00d1b2;">
+              style="position: absolute; top: -8px; right: -12px; font-size: 0.65rem; height: 1.5em; min-width: 1.5em; padding: 0.2em; border: 2px solid #00d1b2;">
               {cartStore.count}
             </span>
           {/if}

@@ -74,11 +74,17 @@
 <div class="columns is-mobile is-multiline mt-1">
   {#each filteredProducts as item}
     <div class="column is-4">
-      <ProductCard 
-        {item}
-        isInCart={isInCart(item)}
-        onAddToCart={() => addToCart(item)}
-      />
+      <a href="/product/{products.indexOf(item)}">
+        <ProductCard 
+          {item}
+          isInCart={isInCart(item)}
+          onAddToCart={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          addToCart(item);
+         }} 
+        />
+      </a>  
     </div>
   {/each}
 </div>

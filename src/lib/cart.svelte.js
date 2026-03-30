@@ -29,6 +29,8 @@ export function removeFromCart(index) {
 }
 
 export function isInCart(product) {
-  return cartStore.items.some(c => c.name === product.name);
+    // ตรวจสอบว่ามีชื่อสินค้าชิ้นนี้อยู่ในตะกร้าหรือยัง
+    if (!product) return false;
+    return cartStore.items.some(c => c.name === product.name);
 }
 

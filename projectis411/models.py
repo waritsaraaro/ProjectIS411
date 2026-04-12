@@ -14,9 +14,11 @@ class Product(BaseModel):
     seller_id: int
     tags: str
     product_status: str = "available"
+    image_url: str | None = None
 
 class ProductOut(Product):
     product_id: int
+    image_url: str | None = None
 
 class ProductDB(SQLModel, table=True):
     product_id:int | None = Field(default=None, primary_key=True)
@@ -28,6 +30,7 @@ class ProductDB(SQLModel, table=True):
     seller_id: int
     tags: str
     product_status: str = "available"
+    image_url: str | None = None
 
 #Order
 class OrderStatus(str, Enum):
@@ -104,7 +107,7 @@ class Payment(BaseModel):
     payment_amount: float
     payment_status: str
     payment_date: str
-    transaction_no: str
+    transaction_no: int
 
 class PaymentOut(Payment):
     payment_id: int
@@ -123,6 +126,9 @@ class Customer(BaseModel):
     username: str
     email: str
     customer_phone: str
+    password: str
+    display_name: str | None = None
+    avatar: str | None = None
 
 class CustomerOut(Customer):
     customer_id: int
@@ -132,6 +138,9 @@ class CustomerDB(SQLModel, table=True):
     username: str
     email: str
     customer_phone: str
+    password: str
+    display_name: str | None = None
+    avatar: str | None = None
 
 #Address  
 class Address(BaseModel):
@@ -213,4 +222,16 @@ class ProductSearchRequest(BaseModel):
     
     # Pagination
     page: int = Field(1, ge=1, description="หน้าที่ต้องการ")
-    page_size: int = Field(20, ge=1, le=100, description="จำนวนสินค้าต่อหน้า")              
+    page_size: int = Field(20, ge=1, le=100, description="จำนวนสินค้าต่อหน้า")  
+
+#Cart
+class CartItemDB(SQLModel, table=True):
+    cartitem_id: int | None = Field(default=None, primary_key=True)
+    cus_id: int        # ไอดีลูกค้าที่หยิบของ
+    product_id: int    # ไอดีสินค้าที่หยิบ
+    qty: int = 1       # จำนวน (ตั้งค่าเริ่มต้นเป็น 1) 
+
+class CartItemCreate(SQLModel):
+    cus_id: int
+    product_id: int
+    qty: int = 1   

@@ -2,10 +2,19 @@ from datetime import datetime
 from fastapi import FastAPI, HTTPException
 from sqlmodel import Session, select, or_, func
 from database import engine, init_db
-from models import (ProductDB, Product, ProductOut, ProductSearchRequest, SortBy,  OrderDB, OrderOut, OrderCreate, OrderStatus, OrderItemDB, PaymentDB, Payment, PaymentOut, CustomerDB, Customer, CustomerOut, SellerDB, Seller, SellerOut, CategoryDB )
+from models import (ProductDB, Product, ProductOut, ProductSearchRequest, SortBy,  OrderDB, OrderOut, OrderCreate, OrderStatus, OrderItemDB, PaymentDB, Payment, PaymentOut, CustomerDB, Customer, CustomerOut, SellerDB, Seller, SellerOut, CategoryDB, CartItemDB, CartItemCreate)
+from fastapi.middleware.cors import CORSMiddleware
 
 init_db()
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], # อนุญาตให้ทุกพอร์ตคุยด้วยได้
+    allow_credentials=True,
+    allow_methods=["*"], # อนุญาตทุก Method (รวมถึง OPTIONS ที่ทำให้เกิด 405)
+    allow_headers=["*"],
+)
 
 #Product
 RUN_SEED_DATA = False #ตอนจะinsertค่อยเปลี่ยนเป็นTrue #เป็น flag variable
@@ -74,6 +83,12 @@ if __name__ == "__main__":
     else:
         print("ℹ️ Seed data disabled (RUN_SEED_DATA = False)")
 
+@app.get("/categories/")
+async def get_all_categories():
+    with Session(engine) as session:
+        categories = session.exec(select(CategoryDB)).all()
+        return categories
+
 
 #post product
 @app.post("/products/")
@@ -93,6 +108,19 @@ async def create_product(product: Product) -> ProductOut:
         session.commit()
         session.refresh(db_product)
         return db_product
+
+#อัพเดตรูปสินค้าที่มีอยู่แล้ว (ได้แค่รูปเดียว)
+@app.patch("/products/{product_id}/image")
+async def update_product_image(product_id: int, image_url: str):
+    with Session(engine) as session:
+        product = session.get(ProductDB, product_id)
+        if not product:
+            raise HTTPException(status_code=404, detail="Product not found")
+        product.image_url = image_url
+        session.add(product)
+        session.commit()
+        session.refresh(product)
+        return {"image_url": product.image_url}
 
 #endpoints ดึงสินค้าตามid
 @app.get("/products/{product_id}")
@@ -481,7 +509,8 @@ async def create_customer(customer: Customer) -> CustomerOut :
         db_customer = CustomerDB(
             username=customer.username,
             email=customer.email,
-            customer_phone=customer.customer_phone
+            customer_phone=customer.customer_phone,
+            password=customer.password
         )
         
         session.add(db_customer)
@@ -646,3 +675,61 @@ async def search_products(search: ProductSearchRequest):
                 for p in products
             ]
         }
+    
+#Cart
+#"เพิ่ม" สินค้าลงตะกร้า
+@app.post("/cart/add")
+async def add_to_cart(item: CartItemCreate):
+    with Session(engine) as session:
+        # เช็กก่อนว่าเคยหยิบชิ้นนี้ใส่ตะกร้าหรือยัง
+        statement = select(CartItemDB).where(
+            CartItemDB.cus_id == item.cus_id, 
+            CartItemDB.product_id == item.product_id
+        )
+        existing_item = session.exec(statement).first()
+
+        if existing_item:
+            # ถ้ามีแล้ว ไม่ต้องทำอะไร หรือจะเพิ่มจำนวนก็ได้ (แต่โปรเจกต์นี้เสื้อผ้ามีชิ้นเดียว เลยข้ามไป)
+            return {"message": "มีสินค้านี้ในตะกร้าแล้ว"}
+        else:
+            # ถ้ายังไม่มี ให้บันทึกลง Database
+            db_item = CartItemDB(cus_id=item.cus_id, product_id=item.product_id, qty=item.qty)
+            session.add(db_item)
+            session.commit()
+            return {"message": "เพิ่มลงตะกร้าสำเร็จ"}
+
+#"ดึงข้อมูล" ตะกร้าของลูกค้าแต่ละคน
+@app.get("/cart/{cus_id}")
+async def get_cart(cus_id: int):
+    with Session(engine) as session:
+        # ดึงสินค้าในตะกร้า
+        statement = select(CartItemDB).where(CartItemDB.cus_id == cus_id)
+        cart_items = session.exec(statement).all()
+
+        # ดึงรายละเอียดสินค้า (ชื่อ, ราคา, รูป) มาประกอบกัน
+        results = []
+        for item in cart_items:
+            product = session.get(ProductDB, item.product_id)
+            if product:
+                results.append({
+                    "cartitem_id": item.cartitem_id,
+                    "product_id": product.product_id,
+                    "name": product.pname,
+                    "price": product.price,
+                    "shop": product.brand,
+                    "selected": True, # ให้ติ๊กถูกไว้เลยตั้งแต่แรก
+                    "img": product.image_url or 'https://placehold.co/400x400'
+                })
+        return results
+
+#"ลบ" สินค้าออกจากตะกร้า
+@app.delete("/cart/remove/{cartitem_id}")
+async def remove_from_cart(cartitem_id: int):
+    with Session(engine) as session:
+        item = session.get(CartItemDB, cartitem_id)
+        if item:
+            session.delete(item)
+            session.commit()
+            return {"message": "ลบสำเร็จ"}
+        return {"message": "ไม่พบข้อมูล"}
+

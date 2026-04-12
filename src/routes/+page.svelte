@@ -1,27 +1,106 @@
 <script>
   import {addToCart, cartStore} from '$lib/cart.svelte.js';
-  import {products, categories} from '$lib/Product.js';
   import ProductCard from '$lib/component/ProductCard.svelte';
-  
+
+  import { page } from '$app/stores'
+
+  let { data } = $props();
+
+  let products = $state(data.products);
   let activeCategory = $state(null);
   let searchQuery = $state("");
 
-   function toggleCategory(cat) {
+  // ---- Svelte Action: ส่ง search/filter ไป POST /products/search ----
+  function searchAction(node) {
+    async function doSearch() {
+      const body = {
+        query: searchQuery || null,
+        category_id: activeCategory || null,
+        page: 1,
+        page_size: 20
+      };
+
+      const res = await fetch('http://localhost:8000/products/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+
+       if (res.ok) {
+        const result = await res.json();
+        products = result.products;   // อัพเดต products ที่แสดง
+      }
+    }
+
+     // ฟังการกด Enter ในช่อง search
+    node.addEventListener('search-submit', doSearch);
+    return {
+      destroy() {
+        node.removeEventListener('search-submit', doSearch);
+      }
+    };
+  }
+  
+  // trigger action เมื่อ category เปลี่ยน
+  function toggleCategory(cat) {
     activeCategory = activeCategory === cat ? null : cat;
+    triggerSearch(activeCategory);  // ส่งไป API ทันทีที่เปลี่ยน category
   }
 
+  // filter เฉพาะ client-side (ขณะพิมพ์) — ใช้ field ของ API
   let filteredProducts = $derived(
     products.filter(p => {
     // เช็คว่าชื่อสินค้ามีคำที่ค้นหาไหม (แปลงเป็นตัวพิมพ์เล็กทั้งคู่เพื่อให้หาง่าย)
-      const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesSearch = p.pname.toLowerCase().includes(searchQuery.toLowerCase());
       // เช็คว่าตรงกับหมวดหมู่ที่เลือกไหม (ถ้าไม่ได้เลือก ให้ผ่านหมด)
-      const matchesCategory = activeCategory === null || p.category === activeCategory;
-      
-      return matchesSearch && matchesCategory;
+      return matchesSearch;
     })
   );
+
+  async function triggerSearch(currentCategory = activeCategory) {
+    const categoryId = currentCategory
+        ? Object.entries(data.categoryMap).find(([id, name]) => name === currentCategory)?.[0]
+        : null;
+
+    console.log('activeCategory:', currentCategory);
+    console.log('categoryMap:', data.categoryMap);
+    console.log('categoryId:', categoryId);
+    console.log('body:', { query: searchQuery || null, category_id: categoryId ? parseInt(categoryId) : null });
+
+    const body = {
+        query: searchQuery || null,
+        category_id: categoryId ? parseInt(categoryId) : null,
+        page: 1,
+        page_size: 20
+    };
+
+    const res = await fetch('http://localhost:8000/products/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+    });
+
+    if (res.ok) {
+        const result = await res.json();
+        products = result.products;
+    }
+}
+
+  // map field API → format ที่ ProductCard ใช้
+  function toCardItem(p) {
+    return {
+      name: p.pname,
+      price: p.price,
+      shop: p.brand,
+      detail: p.description,
+      img: p.image_url ?? 'https://placehold.co/400x400',
+      category: p.categoryID,
+      product_id: p.product_id
+    };
+  }
+  
   function isInCart(item) {
-    return cartStore.items.some(c => c.name === item.name);
+    return cartStore.items.some(c => c.product_id=== item.product_id);
   }
   
 </script>
@@ -52,7 +131,7 @@
 
 
 <div class="columns is-mobile is-variable is-2 mt-2">
-  {#each categories as cat}
+  {#each data.categories as cat}
     <div class="column">
       <button
         class="button is-rounded is-fullwidth {activeCategory === cat ? 'is-warning has-text-weight-bold' : 'is-light'}"
@@ -72,19 +151,21 @@
 
 <div class="container pt-5">
 <div class="columns is-mobile is-multiline mt-1">
-  {#each filteredProducts as item}
+  {#each filteredProducts.map(toCardItem) as item}
     <div class="column is-4">
-      <a href="/product/{products.indexOf(item)}">
         <ProductCard 
-          {item}
+          item={item}
           isInCart={isInCart(item)}
           onAddToCart={(e) => {
           e.preventDefault();
           e.stopPropagation();
+          if (!data.user) {
+              alert("กรุณาเข้าสู่ระบบก่อนหยิบของใส่ตะกร้าค่ะ!");
+              return;
+            }
           addToCart(item);
          }} 
         />
-      </a>  
     </div>
   {/each}
 </div>

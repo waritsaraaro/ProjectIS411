@@ -1,10 +1,11 @@
 <script>
-  let user = {
-    name: 'น้องผัก',
-    username: '@veggie_girl',
+  import { enhance } from '$app/forms';
+
+  let { data } = $props();
+  let user = data.user;
+  let extraInfo = {
     bio: 'ชอบแต่งตัวแนววินเทจ มือสองน่ารัก ๆ 🌷',
-    location: 'Bangkok, Thailand',
-    avatar: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTyszNIwM59Yja6anjgdZoSeP6XACdto22acQ&s'
+    location: 'Bangkok, Thailand'
   };
 
   let stats = {
@@ -30,8 +31,8 @@
           style="overflow: hidden; border-radius: 50%;"
         >
           <img
-            src={user.avatar}
-            alt={user.name}
+            src={user.avatar || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'}
+            alt={user.display_name || user.username}
             style="width: 100%; height: 100%; object-fit: cover;"
           />
         </figure>
@@ -39,11 +40,17 @@
 
       <div class="column is-8">
         <div class="is-flex is-align-items-center is-flex-wrap-wrap mb-4">
-          <p class="title is-4 mr-4 mb-2">{user.username}</p>
+          <p class="title is-4 mr-4 mb-2">@{user.display_name || user.username}</p>
 
           <div class="buttons mb-2">
             <button class="button is-primary is-light">Edit profile</button>
             <button class="button is-light">Share profile</button>
+            
+            <form action="?/logout" method="POST" use:enhance class="ml-2">
+              <button class="button is-danger is-outlined" type="submit">
+                Log out
+              </button>
+            </form>
           </div>
         </div>
 
@@ -60,9 +67,13 @@
         </div>
 
         <div class="content">
-          <p class="has-text-weight-semibold mb-1">{user.name}</p>
-          <p class="mb-1">{user.bio}</p>
-          <p class="has-text-grey">{user.location}</p>
+          <p class="has-text-weight-semibold mb-1">
+            {user.display_name || user.username} 
+            <span class="has-text-grey is-size-7">({user.email})</span>
+          </p>
+          <p class="is-size-7 has-text-grey mb-2">📞 {user.customer_phone}</p>
+          <p class="mb-1">{extraInfo.bio}</p>
+          <p class="has-text-grey">{extraInfo.location}</p>
         </div>
       </div>
     </div>
@@ -91,7 +102,7 @@
             </div>
 
             <div class="card-content">
-              <p class="has-text-weight-semibold">{user.username}</p>
+              <p class="has-text-weight-semibold">@{user.display_name || user.username}</p>
               <p class="mt-2">{post.content}</p>
             </div>
           </div>

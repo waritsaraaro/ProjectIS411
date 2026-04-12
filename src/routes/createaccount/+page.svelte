@@ -1,34 +1,9 @@
 <script>
+  import { enhance } from '$app/forms';
 
-  let name = $state('');
-  let email = $state('');
+  let { form } = $props();
   let password = $state('');
   let confirmPassword = $state('');
-  let error = $state('');
-  let successMessage = $state('');
-
-  function handleSignUp() {
-    if (!name || !email || !password || !confirmPassword) {
-      error = 'กรุณากรอกข้อมูลให้ครบทุกช่อง' ;
-      successMessage= '' ;
-      return ;
-    }
-
-    if (password !== confirmPassword) {
-      error = 'รหัสผ่านและยืนยันรหัสผ่านไม่ตรงกัน';
-      successMessage= '' ;
-      return ;
-    }
-
-    error ='';
-    successMessage ='สมัครสมาชิกสำเร็จ กำลังพากลับไปหน้าเข้าสู่ระบบ...';
-
-    name ='';
-    email='';
-    password='';
-    confirmPassword='';
-  }
-  
 </script>
 
 <section class="hero is-primary">
@@ -45,77 +20,109 @@
       <div class="column is-4-desktop is-5-tablet">
         <div class="box">
           
-          <div class="field">
-            <label class="label">Name</label>
-            <div class="control">
-              <input
-                class="input is-primary"
-                type="text"
-                placeholder="Enter your full name"
-                bind:value={name}
-              />
+          <form method="POST" use:enhance>
+            
+            <div class="field">
+              <label class="label">Username</label>
+              <div class="control">
+                <input
+                  class="input is-primary"
+                  type="text"
+                  name="name" 
+                  placeholder="Enter your username"
+                  value={form?.name ?? ''}
+                  required
+                />
+              </div>
             </div>
-          </div>
 
-          <div class="field">
-            <label class="label">Email</label>
-            <div class="control">
-              <input
-                class="input is-primary"
-                type="email"
-                placeholder="Enter your email"
-                bind:value={email}
-              />
+            <div class="field">
+              <label class="label">Display Name</label>
+              <div class="control">
+                <input
+                  class="input is-primary"
+                  type="text"
+                  name="display_name" 
+                  placeholder="ชื่อที่จะใช้แสดง(ไม่บังคับ)"
+                  value={form?.display_name ?? ''}
+                />
+              </div>
             </div>
-          </div>
 
-          <div class="field">
-            <label class="label">Password</label>
-            <div class="control">
-              <input
-                class="input is-primary"
-                type="password"
-                placeholder="Create a password"
-                bind:value={password}
-              />
+            <div class="field">
+              <label class="label">Email</label>
+              <div class="control">
+                <input
+                  class="input is-primary"
+                  type="email"
+                  name="email"
+                  placeholder="Enter your email"
+                  value={form?.email ?? ''}
+                  required
+                />
+              </div>
             </div>
-          </div>
 
-          <div class="field">
-            <label class="label">Confirm Password</label>
-            <div class="control">
-              <input
-                class="input is-primary"
-                type="password"
-                placeholder="Confirm your password"
-                bind:value={confirmPassword}
-              />
+            <div class="field">
+              <label class="label">Phone Number</label>
+              <div class="control">
+                <input
+                  class="input is-primary"
+                  type="tel"
+                  name="phone"
+                  placeholder="08X-XXX-XXXX"
+                  value={form?.phone ?? ''}
+                  required
+                />
+              </div>
             </div>
-          </div>
 
-          {#if password !== '' && confirmPassword !== ''}
-            {#if password === confirmPassword}
-              <p class="help is-success mb-3">✓ รหัสผ่านตรงกัน</p>
-            {:else}
-              <p class="help is-danger mb-3">✗ รหัสผ่านยังไม่ตรงกัน</p>
+            <div class="field">
+              <label class="label">Password</label>
+              <div class="control">
+                <input
+                  class="input is-primary"
+                  type="password"
+                  name="password"
+                  placeholder="Create a password"
+                  bind:value={password}
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="label">Confirm Password</label>
+              <div class="control">
+                <input
+                  class="input is-primary"
+                  type="password"
+                  name="confirmPassword"
+                  placeholder="Confirm your password"
+                  bind:value={confirmPassword}
+                  required
+                />
+              </div>
+            </div>
+
+            {#if password !== '' && confirmPassword !== ''}
+              {#if password === confirmPassword}
+                <p class="help is-success mb-3">✓ รหัสผ่านตรงกัน</p>
+              {:else}
+                <p class="help is-danger mb-3">✗ รหัสผ่านยังไม่ตรงกัน</p>
+              {/if}
             {/if}
-          {/if}
 
-          {#if error}
-            <div class="notification is-danger is-light is-size-7 py-2 mb-3">
-              {error}
-            </div>
-          {/if}
+            {#if form?.error}
+              <div class="notification is-danger is-light is-size-7 py-2 mb-3">
+                {form.error}
+              </div>
+            {/if}
 
-          {#if successMessage}
-            <div class="notification is-success is-light is-size-7 py-2 mb-3">
-              {successMessage}
-            </div>
-          {/if}
-
-          <button class="button is-primary is-fullwidth mt-3 mb-4" onclick={handleSignUp}>
-            Sign Up
-          </button>
+            <button class="button is-primary is-fullwidth mt-3 mb-4" type="submit">
+              Sign Up
+            </button>
+          </form>
 
           <p class="has-text-centered is-size-7 has-text-grey mb-3">or continue with</p>
 

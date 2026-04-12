@@ -3,6 +3,7 @@
 </script>
 
 <div class="box p-0 has-background-light" style="overflow: hidden;">
+<a href="/product/{item.product_id}">
   <figure class="image is-1by1">
     <img src={item.img} alt={item.name} style="object-fit: cover;">
   </figure>
@@ -14,6 +15,9 @@
       <span class="icon is-small"><i class="fas fa-store"></i></span>
       {item.shop}
     </p>
+    </div>
+    </a>
+
     <button 
       class="button is-fullwidth is-rounded has-text-weight-bold mt-2 {isInCart ? 'is-light is-danger' : 'is-primary'}"
       onclick={onAddToCart}
@@ -25,4 +29,3 @@
       <span>{isInCart ? 'Added' : 'Add to Cart'}</span>
     </button>
   </div>
-</div>

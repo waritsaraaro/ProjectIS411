@@ -1,33 +1,11 @@
 <script>
-  import { goto } from '$app/navigation';
-  import { currentUser } from '$lib/shared';
-
-  let email = '';
-  let password = '';
-  let error = '';
-
-  async function handleSignIn() {
-    error = '';
-
-    if (!email || !password) {
-      error = 'Please enter email and password';
-      return;
-    }
-
-
-    if (email === 'test@gmail.com' && password === '1234') {
-      currentUser.set({ name: 'น้องผัก', avatar: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTyszNIwM59Yja6anjgdZoSeP6XACdto22acQ&s' }); // 
-      goto('/profile');
-    } else {
-      error = 'Invalid email or password';
-    }
-  }
+  let { form } = $props();
 </script>
 
 <section class="hero is-primary">
   <div class="hero-body py-3">
     <div class="container has-text-centered">
-      <p class="title is-4 mb-0">SignIn</p>
+      <p class="title is-4 mb-0">Sign In</p>
     </div>
   </div>
 </section>
@@ -37,41 +15,47 @@
     <div class="columns is-centered">
       <div class="column is-4-desktop is-5-tablet">
         <div class="box">
-          <div class="field">
-            <label class="label">Email</label>
-            <div class="control">
-              <input
-                class="input is-primary"
-                type="email"
-                placeholder="Enter your email"
-                bind:value={email}
-              />
+          
+          <form method="POST">
+            <div class="field">
+              <label class="label">Email</label>
+              <div class="control">
+                <input
+                  class="input is-primary"
+                  type="email"
+                  name="email"
+                  placeholder="Enter your email"
+                  value={form?.email ?? ''}
+                  required
+                />
+              </div>
             </div>
-          </div>
 
-          <div class="field">
-            <label class="label">Password</label>
-            <div class="control">
-              <input
-                class="input is-primary"
-                type="password"
-                placeholder="Enter your password"
-                bind:value={password}
-              />
+            <div class="field">
+              <label class="label">Password</label>
+              <div class="control">
+                <input
+                  class="input is-primary"
+                  type="password"
+                  name="password"
+                  placeholder="Enter your password"
+                  required
+                />
+              </div>
             </div>
-          </div>
 
-          {#if error}
-            <p class="has-text-danger is-size-7 mb-3">{error}</p>
-          {/if}
+            {#if form?.error}
+              <p class="has-text-danger is-size-7 mb-3">{form.error}</p>
+            {/if}
 
-          <div class="is-flex is-justify-content-flex-end mb-4">
-            <a class="is-size-7 has-text-primary" href="/forgetpassword">Forgot password?</a>
-          </div>
+            <div class="is-flex is-justify-content-flex-end mb-4">
+              <a class="is-size-7 has-text-primary" href="/forgetpassword">Forgot password?</a>
+            </div>
 
-          <button class="button is-primary is-fullwidth mb-4" on:click={handleSignIn}>
-            SignIn
-          </button>
+            <button class="button is-primary is-fullwidth mb-4" type="submit">
+              Sign In
+            </button>
+          </form>
 
           <p class="has-text-centered is-size-7 has-text-grey mb-3">or continue with</p>
 
